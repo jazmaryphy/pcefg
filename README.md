@@ -1,4 +1,4 @@
-# pcefg: Point-Charge Model for the Electric Field Gradient (EFG)
+# pcefg: Point-Charge (PC) Model for the Electric Field Gradient (EFG)
 
 `pcefg` is a Python package for computing the Electric Field Gradient (EFG) tensor, asymmetry parameters ($\eta$), and quadrupolar coupling constants ($\chi_Q$) in crystal structures using a classical point-charge model. It serves as a lightweight, fast alternative or complementary approach to First-Principles/Density Functional Theory (DFT) calculations.
 
@@ -101,4 +101,11 @@ result = compute_efg(
     quadrupole_moment=+0.104e-28,  # Q in m^2
     verbose=True
 )
+```
+
+## Examples
+
+For more usage see example folder
+```bash
+cd examples
 ```
