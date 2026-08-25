@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pcefg"
+version = "0.1.0"
+description = "Point-Charge (PC) Electric Field Gradient (EFG) calculations for crystal structure"
+
+authors = [
+    {name="Muhammad Maikudi ISAH", email="muhammadmaikudi.isah@gmail.com"}
+]
+dependencies = [
+    "ase",
+    "numpy",
+    "spglib",
+    "pymatgen",
+]
+[project.optional-dependencies]
+plot = [
+    "matplotlib",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]

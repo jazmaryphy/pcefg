@@ -1,0 +1,28 @@
+# Byte-compiled /cache / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.DS_Store
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Environments
+.venv/
+venv/
+env/
+
+# Testing & IDEs
+.pytest_cache/
+.coverage
+htmlcov/
+.idea/
+.vscode/
+
+
+# Large data folder you want to ignore
+tests/*
