@@ -1,5 +1,5 @@
 # %%
-"""Point-charge lattice summation and Electric Field Gradient (EFG) tensor calculations."""
+"""Point-charge (PC) lattice summation and Electric Field Gradient (EFG) tensor calculations."""
 
 from typing import Any, Optional, Sequence, Tuple, Union
 import matplotlib.axes
@@ -8,7 +8,8 @@ import numpy.typing as npt
 from ase import Atoms
 
 from src.pcefg.utils import quadrupole_frequencies
-from src.pcefg.lattice import check_charges_cover_atoms, get_site_labels
+from src.pcefg.lattice import check_charges_cover_atoms, get_site_labels, get_site_info
+
 from src.pcefg.constants import ANGSTROM, ELEMENTARY_CHARGE, EPSILON0, H_PLANCK
 
 # %%
@@ -146,6 +147,7 @@ def point_charge_EFG(
     sphere_radius: float = 50.0,
     exclude_indices: Sequence[int] = (),
     extra_charges: Optional[Sequence[Tuple[npt.ArrayLike, float]]] = None,
+    coords_are_cartesian: bool = False,
     gamma_sternheimer: float = 0.0,
     verbose: bool = True,
 ) -> npt.NDArray[np.float64]:
@@ -153,30 +155,61 @@ def point_charge_EFG(
 
     Args:
         atoms: Periodic crystal structure as an ASE `Atoms` instance.
-        site_position: Evaluation Cartesian coordinate in Ångströms, shape `(3,)`.
+        site_position: Evaluation coordinate, shape `(3,)`.
+            Interpreted as Cartesian (Å) if `coords_are_cartesian=True`,
+            or fractional unit-cell coordinates if `coords_are_cartesian=False`.
         charges: Mapping of species or site labels to formal charges in units of e.
         sphere_radius: Spherical summation cutoff radius in Ångströms.
         exclude_indices: Indices of structure atoms to omit from summation.
-        extra_charges: Sequence of additional `(position_angstrom, charge_e)` pairs.
+        extra_charges: Sequence of additional `(position, charge_e)` pairs.
+            Positions respect `coords_are_cartesian`.
+        coords_are_cartesian: If True, inputs are treated as Cartesian (Å).
+            If False (default), inputs are treated as fractional coordinates [0, 1).
         gamma_sternheimer: Sternheimer antishielding factor.
         verbose: If True, prints summation info.
 
     Returns:
         Symmetric traceless 3x3 EFG tensor in V/m^2.
     """
-    sphere_radius_m = sphere_radius * ANGSTROM
-    site_m = np.asarray(site_position, dtype=np.float64) * ANGSTROM
+    site_pos_arr = np.asarray(site_position, dtype=np.float64)
 
+    # Convert site_position to Cartesian (Å) if fractional
+    if not coords_are_cartesian:
+        cart_site = atoms.cell.cartesian_positions(site_pos_arr)
+    else:
+        cart_site = site_pos_arr
+
+    # Convert Cartesian position to meters
+    site_m = cart_site * ANGSTROM
+    sphere_radius_m = sphere_radius * ANGSTROM
+
+    # Replicate structure point charges
     pts, qs = _replicate_lattice(
         atoms, charges, sphere_radius_m, exclude_indices=exclude_indices
     )
 
+    # Handle extra charges with matching coordinate conversion
     if extra_charges:
-        extra_pts = np.array([p for p, _ in extra_charges], dtype=np.float64) * ANGSTROM
-        extra_qs = np.array([q for _, q in extra_charges], dtype=np.float64) * ELEMENTARY_CHARGE
+        extra_pts_list = []
+        extra_qs_list = []
+
+        for p, q in extra_charges:
+            p_arr = np.asarray(p, dtype=np.float64)
+            if not coords_are_cartesian:
+                cart_p = atoms.cell.cartesian_positions(p_arr)
+            else:
+                cart_p = p_arr
+
+            extra_pts_list.append(cart_p * ANGSTROM)
+            extra_qs_list.append(q * ELEMENTARY_CHARGE)
+
+        extra_pts = np.array(extra_pts_list, dtype=np.float64)
+        extra_qs = np.array(extra_qs_list, dtype=np.float64)
+
         pts = np.vstack([pts, extra_pts]) if len(pts) else extra_pts
         qs = np.concatenate([qs, extra_qs]) if len(qs) else extra_qs
 
+    # Compute and return 3x3 tensor
     return _efg_tensor_from_charges(
         pts, qs, site_m, sphere_radius_m, gamma_sternheimer, verbose=verbose
     )
@@ -184,15 +217,15 @@ def point_charge_EFG(
 
 def diagonalize_EFG(
     tensor: npt.NDArray[np.float64],
-    quadrupole_moment: float,
-) -> Tuple[npt.NDArray[np.float64], npt.NDArray[np.float64], float, float]:
+    quadrupole_moment: Optional[float] = None,
+) -> Tuple[npt.NDArray[np.float64], npt.NDArray[np.float64], Optional[float], float]:
     """Diagonalize EFG tensor into Principal Axis System (PAS) ordered components.
 
     Calculates principal values according to |Vzz| >= |Vyy| >= |Vxx|.
 
     Args:
         tensor: 3x3 symmetric EFG tensor in V/m^2.
-        quadrupole_moment: Nuclear quadrupole moment Q in m^2.
+        quadrupole_moment: Nuclear quadrupole moment Q in m^2 (optional).
 
     Returns:
         Tuple containing:
@@ -211,8 +244,11 @@ def diagonalize_EFG(
     scale = np.abs(evals).max()
     eta = float(np.abs(v_xx - v_yy) / np.abs(v_zz)) if abs(v_zz) > 1e-6 * scale else 0.0
 
-    chi_q = float(np.abs(v_zz * ELEMENTARY_CHARGE * quadrupole_moment / H_PLANCK))
-    chi_q *= 1e-6  # Convert Hz to MHz
+    chi_q: Optional[float] = None
+    if quadrupole_moment is not None:
+        chi_q = float(np.abs(v_zz * ELEMENTARY_CHARGE * quadrupole_moment / H_PLANCK))
+        chi_q *= 1e-6  # Convert Hz to MHz
+
     return v_aa, p_matrix, chi_q, eta
 
 # %%
@@ -229,61 +265,63 @@ def compute_efg(
     quadrupole_moment: Optional[float] = None,
     verbose: bool = True,
 ) -> dict[str, Any]:
-    """Comprehensive EFG computation, PAS diagonalization, and frequency analysis.
+    """Compute EFG and nuclear quadrupole properties.
 
     Args:
         atoms: Crystal structure as an ASE `Atoms` instance.
-        probe_position: Evaluation coordinates (Cartesian or fractional).
-        atomic_charges: Mapping of species/site labels to formal charges in units of e.
+        probe_position: Target position in Ångströms (if Cartesian) or unit-cell 
+            units (if fractional).
+        atomic_charges: Mapping of elements/species/site labels to formal charges 
+            in units of e.
         sphere_radius: Summation sphere radius in Ångströms.
-        gamma_sternheimer: Antishielding factor.
-        exclude_indices: Indices of atoms to exclude from summation.
-        extra_charges: Sequence of additional `(position, charge_e)` pairs.
-        coords_are_cartesian: If True, `probe_position` is Cartesian; if False, fractional.
+        gamma_sternheimer: Sternheimer antishielding factor.
+        exclude_indices: Indices of atoms in `atoms` to exclude from the lattice sum.
+        extra_charges: Additional explicit point charges as `(pos, charge)` tuples.
+        coords_are_cartesian: If True, treats `probe_position` as Cartesian (Å). 
+            If False, treats `probe_position` as fractional coordinates [0, 1).
         nuclear_spin: Nuclear spin quantum number I.
-        quadrupole_moment: Nuclear quadrupole moment Q in m^2.
-        verbose: If True, prints formatted summary.
+        quadrupole_moment: Spectroscopic electric quadrupole moment Q in m^2.
+        verbose: If True, prints calculation summaries.
 
     Returns:
-        Dictionary containing calculated EFG properties (`EFG_tensor`, `V_aa`, `eta`,
-        `chi_Q_MHz`, `nu_z_MHz`, `nu_Q_MHz`, `principal_axes`, `probe_position`).
+        Dictionary containing the raw 3x3 tensor, principal components (Vxx, Vyy, Vzz), 
+        asymmetry parameter (eta), and quadrupole coupling constant (chi_Q in MHz).
+        and so on...
     """
-    probe_pos_arr = np.asarray(probe_position, dtype=np.float64)
-    if not coords_are_cartesian:
-        cart_probe = np.dot(probe_pos_arr, atoms.get_cell())
-        if extra_charges:
-            extra_charges = [
-                (np.dot(p, atoms.get_cell()).tolist(), q) for p, q in extra_charges
-            ]
-    else:
-        cart_probe = probe_pos_arr
+    # Extract probe info
+    cart_pos, frac_pos, probe_index, probe_symbol = get_site_info(
+        atoms=atoms,
+        position_or_index=probe_position,
+        coords_are_cartesian=coords_are_cartesian,
+        atol=1e-3,
+    )
 
+    # compute raw EFG tensor
     tensor = point_charge_EFG(
-        atoms,
-        cart_probe,
+        atoms=atoms,
+        site_position=probe_position,
         charges=atomic_charges,
         sphere_radius=sphere_radius,
         extra_charges=extra_charges,
         exclude_indices=exclude_indices,
+        coords_are_cartesian=coords_are_cartesian,
         gamma_sternheimer=gamma_sternheimer,
         verbose=verbose,
     )
 
-    v_aa = principal_axes = chi = eta = None
-    v_xx = v_yy = v_zz = None
+    # post-processing (Diagonalization, eta, chi's)
+    v_aa, principal_axes, chi, eta = diagonalize_EFG(
+        tensor, quadrupole_moment=quadrupole_moment
+    )
+    v_xx, v_yy, v_zz = v_aa
     nu_z = nu_q = None
 
-    if quadrupole_moment is not None:
-        v_aa, principal_axes, chi, eta = diagonalize_EFG(
-            tensor, quadrupole_moment=quadrupole_moment
+    if quadrupole_moment is not None and nuclear_spin is not None:
+        props = quadrupole_frequencies(
+            I=nuclear_spin, Q=quadrupole_moment, Vzz=v_zz, eta=eta
         )
-        v_xx, v_yy, v_zz = v_aa
+        nu_z, nu_q = props.get("nu_z_MHz"), props.get("nu_Q_MHz")
 
-        if nuclear_spin is not None:
-            props = quadrupole_frequencies(I=nuclear_spin, Q=quadrupole_moment, Vzz=v_zz, eta=eta)
-            nu_z, nu_q = props.get("nu_z_MHz"), props.get("nu_Q_MHz")
-
-    frac_pos = np.dot(cart_probe, np.linalg.inv(atoms.get_cell())) % 1.0
 
     results = {
         "Vxx": v_xx,
@@ -296,8 +334,8 @@ def compute_efg(
         "chi_Q_MHz": chi,
         "EFG_tensor": tensor,
         "principal_axes": principal_axes,
-        "probe_index": None,
-        "probe_symbol": None,
+        "probe_index": probe_index,
+        "probe_symbol": probe_symbol,
         "probe_position": frac_pos,
     }
 
@@ -474,6 +512,7 @@ class PointChargeEFG:
         sphere_radius (float): Default summation cutoff sphere radius in Ångströms.
         gamma_sternheimer (float): Sternheimer antishielding factor.
         exclude_indices (Tuple[int, ...]): Atomic indices excluded from lattice summations.
+        properties (dict[str, Any]): Calculator inputs and target site metadata.
     """
 
     def __init__(
@@ -491,79 +530,287 @@ class PointChargeEFG:
         self.gamma_sternheimer = gamma_sternheimer
         self.exclude_indices = tuple(exclude_indices)
 
+        # Storage for calculation outputs and metadata
+        self.results: dict[str, Any] = {}
+        self.properties: dict[str, Any] = {
+            "charges": self.charges,
+            "sphere_radius": self.sphere_radius,
+            "gamma_sternheimer": self.gamma_sternheimer,
+            "exclude_indices": self.exclude_indices,
+        }
+
+
+    @property
+    def efg_tensor(self) -> Optional[npt.NDArray[np.float64]]:
+        """Return the 3x3 EFG tensor [V/m^2]."""
+        return self.results.get("EFG_tensor")
+
+    @property
+    def principal_axes(self) -> Optional[npt.NDArray[np.float64]]:
+        """Return the principal axis eigenvectors."""
+        return self.results.get("principal_axes")
+
+    @property
+    def v_xx(self) -> Optional[float]:
+        """Return the principal Vxx component."""
+        return self.results.get("Vxx")
+
+    @property
+    def v_yy(self) -> Optional[float]:
+        """Return the principal Vyy component."""
+        return self.results.get("Vyy")
+
+    @property
+    def v_zz(self) -> Optional[float]:
+        """Return the principal Vzz component."""
+        return self.results.get("Vzz")
+
+    @property
+    def eta(self) -> Optional[float]:
+        """Return the asymmetry parameter eta."""
+        return self.results.get("eta")
+
+    @property
+    def nu_z_mhz(self) -> Optional[float]:
+        """Return nu_z in MHz."""
+        return self.results.get("nu_z_MHz")
+
+    @property
+    def nu_q_mhz(self) -> Optional[float]:
+        """Return nu_Q in MHz."""
+        return self.results.get("nu_Q_MHz")
+
+    @property
+    def chi_q_mhz(self) -> Optional[float]:
+        """Return quadrupolar coupling constant chi_Q in MHz."""
+        return self.results.get("chi_Q_MHz")
+
+
     def compute_at(
         self,
-        position: npt.ArrayLike,
-        coords_are_cartesian: bool = True,
+        position: Union[npt.ArrayLike, int],
+        coords_are_cartesian: bool = False,
         nuclear_spin: Optional[float] = None,
         quadrupole_moment: Optional[float] = None,
+        gamma_sternheimer: Optional[float] = None,
         extra_charges: Optional[Sequence[Tuple[npt.ArrayLike, float]]] = None,
         verbose: bool = False,
+        atol: float = 1e-3,
     ) -> dict[str, Any]:
         """Compute the EFG tensor and quadrupolar properties at a specific position."""
-        return compute_efg(
+        # Resolve gamma: use override if provided, else fall back to instance default
+        gamma = self.gamma_sternheimer if gamma_sternheimer is None else gamma_sternheimer
+        # Resolve target site coordinates and metadata
+        cart_pos, frac_pos, probe_idx, probe_sym = get_site_info(
             atoms=self.atoms,
-            probe_position=position,
+            position_or_index=position,
+            coords_are_cartesian=coords_are_cartesian,
+            atol=atol,
+        )
+
+        # Update input & site metadata
+        self.properties.update(
+            {
+                "probe_position": position,
+                "cartesian_position": cart_pos,
+                "fractional_position": frac_pos,
+                "probe_index": probe_idx,
+                "probe_symbol": probe_sym,
+                "coords_are_cartesian": coords_are_cartesian,
+                "gamma_sternheimer": gamma,
+                "nuclear_spin": nuclear_spin,
+                "quadrupole_moment": quadrupole_moment,
+            }
+        )
+
+        # Compute properties using Cartesian coordinates
+        res = compute_efg(
+            atoms=self.atoms,
+            probe_position=cart_pos,
             atomic_charges=self.charges,
             sphere_radius=self.sphere_radius,
-            gamma_sternheimer=self.gamma_sternheimer,
+            gamma_sternheimer=gamma,
             exclude_indices=self.exclude_indices,
             extra_charges=extra_charges,
-            coords_are_cartesian=coords_are_cartesian,
+            coords_are_cartesian=True,  # Standardized to Cartesian, since "cart_pos" used
             nuclear_spin=nuclear_spin,
             quadrupole_moment=quadrupole_moment,
             verbose=verbose,
         )
 
+        self.results = res
+        return self.results
+
     def get_raw_tensor(
         self,
-        position: npt.ArrayLike,
-        coords_are_cartesian: bool = True,
+        position: Union[npt.ArrayLike, int],
+        coords_are_cartesian: bool = False,
+        gamma_sternheimer: Optional[float] = None,
         extra_charges: Optional[Sequence[Tuple[npt.ArrayLike, float]]] = None,
+        atol: float = 1e-3,
     ) -> npt.NDArray[np.float64]:
         """Compute raw 3x3 EFG matrix [V/m^2] without full property extraction."""
-        pos_arr = np.asarray(position, dtype=np.float64)
-        if not coords_are_cartesian:
-            pos_cart = np.dot(pos_arr, self.atoms.get_cell())
-            if extra_charges:
-                extra_charges = [
-                    (np.dot(p, self.atoms.get_cell()).tolist(), q) for p, q in extra_charges
-                ]
-        else:
-            pos_cart = pos_arr
+        # Resolve gamma: use override if provided, else fall back to instance default
+        gamma = self.gamma_sternheimer if gamma_sternheimer is None else gamma_sternheimer
 
-        return point_charge_EFG(
+        # Standardize position input via lattice helper
+        cart_pos, frac_pos, probe_idx, probe_sym = get_site_info(
             atoms=self.atoms,
-            site_position=pos_cart,
+            position_or_index=position,
+            coords_are_cartesian=coords_are_cartesian,
+            atol=atol,
+        )
+
+        # Update site metadata
+        self.properties.update(
+            {
+                "probe_position": position,
+                "cartesian_position": cart_pos,
+                "fractional_position": frac_pos,
+                "probe_index": probe_idx,
+                "probe_symbol": probe_sym,
+                "coords_are_cartesian": coords_are_cartesian,
+                "gamma_sternheimer": gamma,
+            }
+        )
+
+        tensor = point_charge_EFG(
+            atoms=self.atoms,
+            site_position=cart_pos,
             charges=self.charges,
             sphere_radius=self.sphere_radius,
             exclude_indices=self.exclude_indices,
             extra_charges=extra_charges,
-            gamma_sternheimer=self.gamma_sternheimer,
+            coords_are_cartesian=True,  # Standardized to Cartesian, since "cart_pos" used
+            gamma_sternheimer=gamma,
             verbose=False,
         )
 
+        # Update results dict
+        self.results.update(
+            {
+                "EFG_tensor": tensor,
+            }
+        )
+        # self.results = {"EFG_tensor": tensor}
+
+        return tensor
+
+
+    def print_summary(self) -> None:
+        """Print a structured summary of calculation results and site metadata."""
+        if not self.results:
+            print("PointChargeEFG: No calculation results available.")
+            return
+
+        props = self.properties
+        symbol = props.get("probe_symbol", "N/A")
+        idx = props.get("probe_index", "N/A")
+        frac_pos = props.get("fractional_position")
+        cart_pos = props.get("cartesian_position")
+
+        # Format positions cleanly
+        frac_str = (
+            f"({frac_pos[0]: 8.5f}, {frac_pos[1]: 8.5f}, {frac_pos[2]: 8.5f})"
+            if frac_pos is not None
+            else "N/A"
+        )
+        cart_str = (
+            f"({cart_pos[0]: 8.5f}, {cart_pos[1]: 8.5f}, {cart_pos[2]: 8.5f})"
+            if cart_pos is not None
+            else "N/A"
+        )
+
+        print("=" * 65)
+        print(f"  EFG CALCULATION SUMMARY: Site {symbol} (Index {idx})")
+        print("=" * 65)
+
+        print("\n-- Site Metadata & Inputs --")
+        print(f"  Fractional Pos : {frac_str}")
+        print(f"  Cartesian Pos  : {cart_str}")
+        print(f"  Sum Radius     : {props.get('sphere_radius', 'N/A')} Å")
+        print(f"  Sternheimer G  : {props.get('gamma_sternheimer', 0.0): .4f}")
+        if props.get("nuclear_spin") is not None:
+            print(f"  Nuclear Spin I : {props.get('nuclear_spin')}")
+        if props.get("quadrupole_moment") is not None:
+            print(f"  Quadrupole Q   : {props.get('quadrupole_moment'): .4e} m^2")
+
+        # EFG Matrix Output
+        if self.efg_tensor is not None:
+            print("\n-- Raw EFG Tensor V_ij (V/m^2) --")
+            for row in self.efg_tensor:
+                print(
+                    f"  ( {row[0]: 14.6e}  {row[1]: 14.6e}  {row[2]: 14.6e} )"
+                )
+
+        # Principal Diagonal & Asymmetry (Safely handle None if get_raw_tensor was used)
+        if self.v_zz is not None and self.v_xx is not None and self.v_yy is not None:
+            print("\n-- Principal Diagonal & Asymmetry --")
+            print(
+                f"  Vxx = {self.v_xx: 13.6e} V/m^2 | Vyy = {self.v_yy: 13.6e} V/m^2 | Vzz = {self.v_zz: 13.6e} V/m^2"
+            )
+            if self.eta is not None:
+                print(f"  Asymmetry Parameter (eta) : {self.eta: .5f}")
+
+        # Quadrupolar Frequencies (Only prints if quadrupole_moment was provided)
+        if self.chi_q_mhz is not None:
+            print("\n-- Quadrupolar Frequencies --")
+            print(
+                f"  Cq  (Quadrupolar Coupling)       : {self.chi_q_mhz: .6f} MHz"
+            )
+            if self.nu_q_mhz is not None:
+                print(
+                    f"  nu_Q                             : {self.nu_q_mhz: .6f} MHz"
+                )
+            if self.nu_z_mhz is not None:
+                print(
+                    f"  nu_z                             : {self.nu_z_mhz: .6f} MHz"
+                )
+
+        print("=" * 65)
+
+
     def check_radius_convergence(
         self,
-        position: npt.ArrayLike,
+        position: Union[npt.ArrayLike, int],
         coords_are_cartesian: bool = True,
         quadrupole_moment: float = 1.0e-28,
+        gamma_sternheimer: Optional[float] = None,
         sphere_radius_max: float = 100.0,
         sphere_radius_step: float = 10.0,
         conv_thr: float = 1e-3,
         ax: Optional[matplotlib.axes.Axes] = None,
+        atol: float = 1e-3,
     ) -> Tuple[list[float], npt.NDArray[np.float64], npt.NDArray[np.float64]]:
         """Evaluate how Vzz converges relative to real-space summation radius."""
-        pos_arr = np.asarray(position, dtype=np.float64)
-        pos_cart = pos_arr if coords_are_cartesian else np.dot(pos_arr, self.atoms.get_cell())
+        # Resolve gamma: use override if provided, else fall back to instance default
+        gamma = self.gamma_sternheimer if gamma_sternheimer is None else gamma_sternheimer
+
+        cart_pos, frac_pos, probe_idx, probe_sym = get_site_info(
+            atoms=self.atoms,
+            position_or_index=position,
+            coords_are_cartesian=coords_are_cartesian,
+            atol=atol,
+        )
+
+        self.properties.update(
+            {
+                "probe_position": position,
+                "cartesian_position": cart_pos,
+                "fractional_position": frac_pos,
+                "probe_index": probe_idx,
+                "probe_symbol": probe_sym,
+                "gamma_sternheimer": gamma,
+            }
+        )
 
         return sphere_radius_convergence(
             atoms=self.atoms,
-            site_position=pos_cart,
+            site_position=cart_pos,
             charges=self.charges,
             exclude_indices=self.exclude_indices,
             quadrupole_moment=quadrupole_moment,
-            gamma_sternheimer=self.gamma_sternheimer,
+            gamma_sternheimer=gamma,
             conv_thr=conv_thr,
             sphere_radius_step=sphere_radius_step,
             sphere_radius_max=sphere_radius_max,

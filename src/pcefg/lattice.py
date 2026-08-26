@@ -2,13 +2,73 @@
 """Lattice and crystallographic site symmetry utilities."""
 
 from collections import defaultdict
-from typing import Dict, List, Sequence, Union
+from typing import Dict, List, Optional, Tuple, Sequence, Union
 
 import spglib
 import numpy as np
 from ase import Atoms
+import numpy.typing as npt
 from pymatgen.core import Structure
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
+
+# %%
+def get_site_info(
+    atoms: Atoms,
+    position_or_index: Union[npt.ArrayLike, int],
+    coords_are_cartesian: bool = False,
+    atol: float = 1e-3,
+) -> Tuple[
+    npt.NDArray[np.float64],
+    npt.NDArray[np.float64],
+    Optional[int],
+    Optional[str],
+]:
+    """Resolve a target site into Cartesian/fractional coordinates and site metadata.
+
+    Args:
+        atoms: ASE `Atoms` object representing the crystal lattice.
+        position_or_index: Target position given as fractional/Cartesian coordinates,
+            or an integer atom index in `atoms`.
+        coords_are_cartesian: If True, treats coordinate input as Cartesian (Å).
+            If False, treats input as fractional unit-cell coordinates [0, 1).
+        atol: Position tolerance in Ångströms to identify a matching atom index/symbol.
+
+    Returns:
+        Tuple containing:
+            - cart_pos: Cartesian position array in Å, shape `(3,)`.
+            - frac_pos: Fractional position array, shape `(3,)`.
+            - site_index: Matched atom index in structure, or None if off-lattice.
+            - site_symbol: Matched chemical symbol, or None if off-lattice.
+    """
+    site_index: Optional[int] = None
+    site_symbol: Optional[str] = None
+
+    # Option A: Passed an integer atom index directly
+    if isinstance(position_or_index, (int, np.integer)):
+        site_index = int(position_or_index)
+        site_symbol = str(atoms.symbols[site_index])
+        cart_pos = atoms.positions[site_index].copy()
+        frac_pos = atoms.get_scaled_positions()[site_index].copy()
+
+    # Option B: Passed a coordinate vector (fractional or Cartesian)
+    else:
+        pos_arr = np.asarray(position_or_index, dtype=np.float64)
+        if coords_are_cartesian:
+            cart_pos = pos_arr
+            frac_pos = atoms.cell.scaled_positions(cart_pos)
+        else:
+            frac_pos = pos_arr
+            cart_pos = atoms.cell.cartesian_positions(frac_pos)
+
+        # Spatial lookup: check if coordinates match an existing atom site
+        if len(atoms) > 0:
+            distances = np.linalg.norm(atoms.positions - cart_pos, axis=1)
+            min_idx = int(np.argmin(distances))
+            if distances[min_idx] <= atol:
+                site_index = min_idx
+                site_symbol = str(atoms.symbols[min_idx])
+
+    return cart_pos, frac_pos, site_index, site_symbol
 
 # %%
 def _label_kinds(
