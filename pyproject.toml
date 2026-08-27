@@ -1,14 +1,15 @@
 [build-system]
-requires = ["setuptools", "wheel"]
+requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "pcefg"
 version = "0.1.0"
 description = "Point-Charge (PC) Electric Field Gradient (EFG) calculations for crystal structure"
-
+readme = "README.md"
+requires-python = ">=3.9"
 authors = [
-    {name="Muhammad Maikudi ISAH", email="muhammadmaikudi.isah@gmail.com"}
+    { name = "Muhammad Maikudi ISAH", email = "muhammadmaikudi.isah@gmail.com" }
 ]
 dependencies = [
     "ase",
@@ -16,10 +17,41 @@ dependencies = [
     "spglib",
     "pymatgen",
 ]
+
 [project.optional-dependencies]
 plot = [
     "matplotlib",
 ]
+test = [
+    "pytest>=7.0",
+    "pytest-cov",
+]
+dev = [
+    "pcefg[test,plot]",
+    "ruff",
+    "mypy",
+]
 
 [tool.setuptools.packages.find]
 where = ["."]
+
+# --- Pytest Configuration ---
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "-ra -q --cov=pcefg --cov-report=term-missing"
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+
+# --- Coverage Configuration ---
+[tool.coverage.run]
+source = ["pcefg"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+
+# --- Optional Code Formatting/Linting (Ruff) ---
+[tool.ruff]
+line-length = 88
+target-version = "py39"
