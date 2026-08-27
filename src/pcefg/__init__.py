@@ -1,6 +1,7 @@
 """pcefg: Point-Charge (PC) Electric Field Gradient (EFG) calculations in Python."""
 
 __version__ = "0.1.0"
+__author__  = "Muhammad Maikudi Isah"
 
 from src.pcefg.point_charge import (
     compute_efg,
