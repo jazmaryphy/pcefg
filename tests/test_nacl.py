@@ -12,6 +12,13 @@ from src.pcefg.point_charge import compute_efg, point_charge_EFG
 def nacl_calculator() -> PointChargeEFG:
     """Fixture providing a configured calculator for rocksalt NaCl."""
     atoms = bulk("NaCl", "rocksalt", a=5.64)
+    a = 5.640
+    atoms = crystal(
+        symbols=["Na", "Cl"],
+        basis=[(0, 0, 0), (0.5, 0.5, 0.5)], 
+        spacegroup=225, # Fm-3m
+        cellpar=[a, a, a, 90, 90, 90],
+    )
     charges = {"Na": +1.0, "Cl": -1.0}
     return PointChargeEFG(
         atoms=atoms, 
