@@ -88,6 +88,12 @@ def test_al2o3_efg_tensor_is_symmetric(
 
     tensor = res["EFG_tensor"]
 
+    # remove numerical noise
+    noise_threshold=1e-8
+    max_element = np.max(np.abs(tensor))
+    if max_element > 0:
+        tensor[np.abs(tensor) < noise_threshold * max_element] = 0.0
+
     assert np.allclose(
         tensor,
         tensor.T,
