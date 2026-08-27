@@ -76,6 +76,13 @@ def test_cubic_symmetry_zero_efg(nacl_calculator: PointChargeEFG) -> None:
 def test_missing_charges_raises_error() -> None:
     """Test that the calculator raises a ValueError if an atom is missing a charge."""
     atoms = bulk("NaCl", "rocksalt", a=5.64)
+    a = 5.640
+    atoms = crystal(
+        symbols=["Na", "Cl"],
+        basis=[(0, 0, 0), (0.5, 0.5, 0.5)], 
+        spacegroup=225, # Fm-3m
+        cellpar=[a, a, a, 90, 90, 90],
+    )
     # Missing 'Cl' charge
     bad_charges = {"Na": +1.0}
     calc = PointChargeEFG(atoms=atoms, charges=bad_charges)
