@@ -5,7 +5,7 @@ import numpy as np
 from ase.build import bulk
 from ase.spacegroup import crystal
 from src.pcefg.point_charge import PointChargeEFG
-from src.pcefg.point_charge import compute_efg, point_charge_EFG, diagonalized_EFG
+from src.pcefg.point_charge import compute_efg, point_charge_EFG, diagonalize_EFG
 
 
 @pytest.fixture
