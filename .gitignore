@@ -25,4 +25,4 @@ htmlcov/
 
 
 # Large data folder you want to ignore
-tests/*
+tests/test_point_charge.py
