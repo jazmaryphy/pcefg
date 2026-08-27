@@ -1,6 +1,7 @@
-import numpy as np
-import pytest
+"""Unit tests for the point-charge EFG calculator."""
 
+import pytest
+import numpy as np
 from src.pcefg.constants import ELEMENTARY_CHARGE, EPSILON0
 from src.pcefg.utils import (
     Vzz_for_unit_charge_at_distance,
