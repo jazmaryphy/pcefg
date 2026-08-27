@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
 
-from pcefg.constants import ELEMENTARY_CHARGE, EPSILON0
-from pcefg.utils import (
+from src.pcefg.constants import ELEMENTARY_CHARGE, EPSILON0
+from src.pcefg.utils import (
     Vzz_for_unit_charge_at_distance,
     gen_radial_EFG,
 )
