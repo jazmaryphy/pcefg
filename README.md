@@ -27,7 +27,7 @@ $$\hat{\mathcal{H}}_Q = \sum_{i}^{N_{\mathrm{nuc}}}\frac{eQ^i(1-\gamma_\infty^i)
 where:
 - $Q^i$ is the $i\text{-th}$ nuclear electric quadrupole moment.
 - $V_{\alpha\beta}^{i}$ is the EFG tensor at the site of the $i\text{-th}$ quadrupolar nucleus.
-- $\hat{I}_{\alpha}^i$ & $\hat{I}_{\beta}^i$ are the nuclear spin operators, and
+- $\hat{I}_{\alpha}^i$ \& $\hat{I}_{\beta}^i$ are the nuclear spin operators, and
 - $\gamma_\infty^i$ is the Sternheimer antishielding factor.
 
 Here $V_{\alpha\beta}^i\equiv \partial_{\alpha}\partial_{\beta} V(\mathbf{r}_i)$ with $V(\mathbf{r}_i)$ being the electrostatic potential with its derivatives evaluated at the nucleus.
