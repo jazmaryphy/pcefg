@@ -52,7 +52,7 @@ $$V(\mathbf{r}_0) = \frac{1}{4\pi\varepsilon_0} \int d\mathbf{r}' \frac{\sum_k q
 where $q_{k}$ and $\mathbf{x}_k = \mathbf{r}_0 - \mathbf{r}_k$ are the charge and position vector of the $k$-th ion located at distance $r_k = \lvert \mathbf{x}_k \rvert$ from the origin at the site of interest ($\mathbf{r}_0$).
 
 
-with $\mathbf{x}_k \equiv ({x_{1k}}, {x_{2k}}, {x_{2k}})$
+with $\mathbf{x}_{k} \equiv ({x_{1k}}, {x_{2k}}, {x_{2k}})$
 
 $\mathbf{x}_k = (x_{1k}, \, x_{2k}, \, x_{3k})$
 
@@ -73,5 +73,5 @@ The EFG tensor components $V_{ij} = \partial^2 V / \partial x_i \partial x_j$ at
 
 $$V_{ij} = \frac{1}{4\pi\varepsilon_0} \sum_k q_k \left( \frac{3x_{ik}x_{jk}-\delta_{ij}r_k^2}{r_k^5} \right), \quad i, j = 1, 2, 3$$
 
-where $\delta_{ij}$ is the Kronecker delta and $r_k = \lvert \mathbf{x}_k \rvert$ with $\mathbf{x}_k \equiv ({x_{1k}}, {x_{2k}}, {x_{2k}})$.
+where $\delta_{ij}$ is the Kronecker delta and $r_k = \lvert \mathbf{x}_k \rvert$ with $\mathbf{x}_{k} \equiv ({x_{1k}}, {x_{2k}}, {x_{2k}})$.
 
