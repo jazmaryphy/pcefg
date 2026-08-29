@@ -70,15 +70,21 @@ To account for the polarization of the core electronic cloud surrounding the pro
 
 $$V_{ij}^{\mathrm{total}} = (1-\gamma_\infty)\, V_{ij}^{\mathrm{lattice}}$$
 
+
 ### Calculated Properties
 
 Diagonalization of the EFG tensor yields its principal components $(V_{xx}, V_{yy}, V_{zz})$, ordered by absolute magnitude:
 
 $$\lvert V_{zz} \rvert \ge \lvert V_{yy} \rvert \ge \lvert V_{xx} \rvert$$
 
-From these components, the asymmetry parameter $\eta$ and quadrupolar coupling constant $\chi_Q$ are calculated:
+From these components, the quadrupolar parameters are derived:
 
 $$\eta = \frac{V_{xx} - V_{yy}}{V_{zz}}, \qquad \chi_Q = \frac{e Q V_{zz}}{h}$$
+
+$$\nu_z = \frac{3 e Q V_{zz}}{2I(2I - 1)h}, \qquad \nu_Q = \left\lvert \nu_z \sqrt{1 + \frac{\eta^2}{3}} \right\rvert$$
+
+
+$$\qquad \nu_x = \frac{1}{2}\nu_z(\eta - 1), \qquad \nu_y = -\frac{1}{2}\nu_z(\eta + 1)$$
 
 ---
 
