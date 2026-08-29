@@ -49,9 +49,12 @@ Assuming a collection of stationary point charges $\rho(\mathbf{r}') = \sum_k q_
 $$V(\mathbf{r}_0) = \frac{1}{4\pi\varepsilon_0} \int d\mathbf{r}' \frac{\sum_k q_k \delta(\mathbf{r}' - \mathbf{r}_k)}{\lvert\mathbf{r}_0 - \mathbf{r}'\rvert} = \frac{1}{4\pi\varepsilon_0} \sum_k \frac{q_k}{\lvert\mathbf{r}_0 - \mathbf{r}_k\rvert} = \frac{1}{4\pi\varepsilon_0} \sum_k \frac{q_k}{\lvert \mathbf{x}_k \rvert}$$
 
 
-
-
 where $q_{k}$ and $\mathbf{x}_k = \mathbf{r}_0 - \mathbf{r}_k$ are the charge and position vector of the $k$-th ion located at distance $r_k = \lvert \mathbf{x}_k \rvert$ from the origin at the site of interest ($\mathbf{r}_0$).
+
+
+
+
+$\mathbf{x}_k = (x_{1k}, x_{2k}, x_{3k})$ 
 
 
 $\mathbf{x}_{k} = \mathbf{r}_{0} - \mathbf{r}_{k} = (x_{1k}, x_{2k}, x_{3k})$ 
