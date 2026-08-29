@@ -30,8 +30,8 @@ where:
 - $\hat{I}_{\alpha}^i$ and $\hat{I}_{\beta}^i$ are the nuclear spin operators.
 - $\gamma_\infty^i$ is the Sternheimer antishielding factor.
 
-Here $V_{\alpha\beta}^i \equiv \partial_{\alpha}\partial_{\beta} V(\mathbf{r}_i)$ with $V(\mathbf{r}_i)$ being the electrostatic potential evaluated at the nucleus.
-Notice that since the electric field is $\mathbf{E} = -\nabla V(\mathbf{r})$, the EFG tensor can also be expressed as $V_{\alpha\beta} = -\partial_{\alpha}E_{\beta}$.
+Here $V_{\alpha\beta}^i \equiv \partial_{\alpha}\partial_{\beta} V(\mathbf{r}_i)$ with $V(\mathbf{r}_i)$ being the electrostatic potential evaluated at the nucleus. Notice that since the electric field is $\mathbf{E} = -\nabla V(\mathbf{r})$, the EFG tensor can also be expressed as $V_{\alpha\beta} = -\partial_{\alpha}E_{\beta}$.
+
 
 To obtain the EFG, we start from the electrostatic potential centered at the nuclear site $V(\mathbf{r}_0)$:
 
@@ -47,7 +47,7 @@ $$V(\mathbf{r}_0)= \frac{1}{4\pi\varepsilon_0} \sum_k \frac{q_k}{x_k}$$
 
 $$\implies \quad [\delta(\mathbf{r}'-\mathbf{r}_k) \ne 0 \quad \text{iff} \quad \mathbf{r}'=\mathbf{r}_k]$$
 
-where $q_k$ and $\mathbf{x}_k = \mathbf{r}_0 - \mathbf{r}_k$ are the charge and position vector of the $k$-th ion [with coordinates $\mathbf{x}_k=(x_{1k}, x_{2k}, x_{3k})$] located at distance $r_k = \lvert\mathbf{x}_k\rvert$ from the origin at the site of interest ($\mathbf{r}_0$).
+where $q_k$ and $\mathbf{x}_k = \mathbf{r}_0 - \mathbf{r}_k$ are the charge and position vector of the $k$-th ion [with coordinates $\mathbf{x}_k = (x_{1k}, x_{2k}, x_{3k})$] located at distance $r_k = \lvert\mathbf{x}_k\rvert$ from the origin at the site of interest ($\mathbf{r}_0$).
 
 The EFG tensor components $V_{ij} = \partial^2 V /\partial x_i\partial x_j$ due to this periodic array of point charges are given by:
 
