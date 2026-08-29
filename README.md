@@ -53,6 +53,8 @@ where $q_{k}$ and $\mathbf{x}_k = \mathbf{r}_0 - \mathbf{r}_k$ are the charge an
 
 
 
+$\mathbf{x}_k = (x_{1k}, \, x_{2k}, \, x_{3k})$
+
 
 $\mathbf{x}_k = (x_{1k}, x_{2k}, x_{3k})$ 
 
