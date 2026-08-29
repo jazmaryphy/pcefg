@@ -81,3 +81,198 @@ From these components, the asymmetry parameter $\eta$ and quadrupolar coupling c
 $$\eta = \frac{V_{xx} - V_{yy}}{V_{zz}}, \qquad \chi_Q = \frac{e Q V_{zz}}{h}$$
 
 ---
+
+## Installation
+
+### From Source
+```bash
+git clone [https://github.com/jazmaryphy/pcefg.git](https://github.com/jazmaryphy/pcefg.git)
+cd pcefg
+pip install .
+```
+
+## Usage
+
+### Example 1
+
+We can use `point_charge_EFG` and/or `compute_efg` to compute EFG at a giving position by:
+
+```python
+import numpy as np
+from ase.spacegroup import crystal
+from pcefg.src.pcefg.lattice import get_atom_kinds
+from pcefg.src.pcefg.point_charge import point_charge_EFG, compute_efg
+
+# Build Hexagonal Corundum (ie. alpha-Al2O3) using Space Group 167 (R-3c)
+a, c = 4.754, 12.990
+atoms = crystal(
+    symbols=["Al", "O"],
+    basis=[(0, 0, 0.35228), (0.3064, 0, 0.25)],
+    spacegroup=167,
+    cellpar=[a, a, c, 90, 90, 120],
+)
+
+# Atom kinds/symbols in atoms
+atm_kinds = get_atom_kinds(atoms)
+
+# Assign formal charges (Al: +3.0, O: -2.0)
+charges = {"Al": 3.0, "O": -2.0}
+
+# Define probe input properties
+O_nuclear_spin   = 5/2
+O_Quadrupole_moment = -0.0265e-28  # m^2 (0.038 abundance)
+O_gamma_sternheimer = -2.2
+O_atm_idx = atm_kinds["O"][2]
+O_atm_pos = atoms.get_scaled_positions()[O_atm_idx]
+
+# Compute bare EFG tensor
+efg_tensor = point_charge_EFG(
+            atoms=atoms,
+            site_position=O_atm_pos,
+            charges=charges,
+            sphere_radius=50.0,
+            coords_are_cartesian=False,  
+            gamma_sternheimer=0,
+            verbose=False,
+        )
+
+# or Compute EFG along with properties in dict format
+results = compute_efg(
+    atoms, 
+    probe_position=O_atm_pos, 
+    atomic_charges=charges, 
+    sphere_radius=50.0,
+    gamma_sternheimer=O_gamma_sternheimer, 
+    coords_are_cartesian=False, 
+    nuclear_spin=O_nuclear_spin,
+    quadrupole_moment=O_Quadrupole_moment,
+    verbose=False
+)
+
+results
+```
+
+### Expected Output
+
+The `results` expected is:
+
+```text
+results = {'Vxx': np.float64(7.247509699025467e+20),
+ 'Vyy': np.float64(3.0494015362241606e+21),
+ 'Vzz': np.float64(-3.7741525061267735e+21),
+ 'eta': 0.6159397540369369,
+ 'V_aa': array([ 7.24750970e+20,  3.04940154e+21, -3.77415251e+21]),
+ 'nu_z_MHz': np.float64(0.3627529412726441),
+ 'nu_Q_MHz': np.float64(0.38500728241417964),
+ 'chi_Q_MHz': 2.4183529418176284,
+ 'EFG_tensor': array([[-2.45809079e+19,  4.32626961e+20, -2.95370218e+21],
+        [ 4.32626961e+20,  4.74973677e+20,  1.70532075e+21],
+        [-2.95370218e+21,  1.70532075e+21, -4.50392769e+20]]),
+ 'principal_axes': array([[-5.00000000e-01,  6.20221153e-01, -6.04421807e-01],
+        [-8.66025404e-01, -3.58084850e-01,  3.48963093e-01],
+        [ 2.66453526e-15, -6.97926186e-01, -7.16169699e-01]]),
+ 'probe_index': 14,
+ 'probe_symbol': 'O',
+ 'probe_position': array([0.6936, 0.6936, 0.25  ])}
+```
+
+### Example 2
+
+We can use `PointChargeEFG` calculator to do same as above:
+
+```python
+import numpy as np
+from ase.spacegroup import crystal
+from pcefg.src.pcefg.lattice import get_atom_kinds
+from pcefg.src.pcefg.point_charge import PointChargeEFG
+
+# Build Hexagonal Corundum (ie. alpha-Al2O3) using Space Group 167 (R-3c)
+a, c = 4.754, 12.990
+atoms = crystal(
+    symbols=["Al", "O"],
+    basis=[(0, 0, 0.35228), (0.3064, 0, 0.25)],
+    spacegroup=167,
+    cellpar=[a, a, c, 90, 90, 120],
+)
+
+# atom kinds/symbols in atoms
+atm_kinds = get_atom_kinds(atoms)
+
+# Assign formal charges (Al: +3.0, O: -2.0)
+charges = {"Al": 3.0, "O": -2.0}
+
+# Initialize PointChargeEFG
+calc = PointChargeEFG(
+    atoms=atoms,
+    charges=charges,
+    sphere_radius=50.0,
+)
+
+# Define probe input properties
+O_nuclear_spin   = 5/2
+O_Quadrupole_moment = -0.0265e-28  # m^2 (0.038 abundance)
+O_gamma_sternheimer = -2.2
+O_atm_idx = atm_kinds["O"][0]
+O_atm_pos = atoms.get_scaled_positions()[O_atm_idx]
+
+# Calculate EFG at a position
+efg_tensor = calc.get_raw_tensor(
+    position=O_atm_pos,  # position (O_atm_pos) or index (O_atm_idx)
+    coords_are_cartesian=False,
+    gamma_sternheimer=O_gamma_sternheimer
+    )
+
+# calc.print_summary()
+
+# EFG and other properties
+results = calc.compute_at(
+    position=O_atm_pos,  # position (O_atm_pos) or index (O_atm_idx)
+    nuclear_spin=O_nuclear_spin,
+    quadrupole_moment=O_Quadrupole_moment,
+    coords_are_cartesian=False,
+    gamma_sternheimer=O_gamma_sternheimer
+    )
+
+calc.print_summary()
+```
+
+### Expected Output
+
+Running `calc.print_summary()` displays the following formatted summary:
+
+```text
+=================================================================
+  EFG CALCULATION SUMMARY: Site O (Index 14)
+=================================================================
+
+-- Site Metadata & Inputs --
+  Fractional Pos : ( 0.69360,  0.69360,  0.25000)
+  Cartesian Pos  : ( 1.64869,  2.85561,  3.24750)
+  Sum Radius     : 50.0 Å
+  Sternheimer G  : -2.2000
+  Nuclear Spin I : 2.5
+  Quadrupole Q   : -2.6500e-30 m^2
+
+-- Raw EFG Tensor V_ij (V/m^2) --
+  (  -2.458091e+19    4.326270e+20   -2.953702e+21 )
+  (   4.326270e+20    4.749737e+20    1.705321e+21 )
+  (  -2.953702e+21    1.705321e+21   -4.503928e+20 )
+
+-- Principal Diagonal & Asymmetry --
+  Vxx =  7.247510e+20 V/m^2 | Vyy =  3.049402e+21 V/m^2 | Vzz = -3.774153e+21 V/m^2
+  Asymmetry Parameter (eta) :  0.61594
+
+-- Quadrupolar Frequencies --
+  Cq  (Quadrupolar Coupling)       :  2.418353 MHz
+  nu_Q                             :  0.385007 MHz
+  nu_z                             :  0.362753 MHz
+=================================================================
+```
+
+
+## Examples
+
+For more usage see example folder
+```bash
+cd examples
+```
