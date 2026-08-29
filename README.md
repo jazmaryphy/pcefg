@@ -54,7 +54,7 @@ $$V(\mathbf{r}_0) = \frac{1}{4\pi\varepsilon_0} \int d\mathbf{r}' \frac{\sum_k q
 where $q_{k}$ and $\mathbf{x}_k = \mathbf{r}_0 - \mathbf{r}_k$ are the charge and position vector of the $k$-th ion located at distance $r_k = \lvert \mathbf{x}_k \rvert$ from the origin at the site of interest ($\mathbf{r}_0$).
 
 
-$\mathbf{x}_{k} = \mathbf{r}_{0} - \mathbf{r}_{k} \equiv (x_{1k}, x_{2k}, x_{3k})$ 
+$\mathbf{x}_{k} = \mathbf{r}_{0} - \mathbf{r}_{k} = (x_{1k}, x_{2k}, x_{3k})$ 
 
 
 where $q_k$ and $\mathbf{x}_k = \mathbf{r}_0 - \mathbf{r}_k \equiv (x_{1k}, x_{2k}, x_{3k})$ are...
