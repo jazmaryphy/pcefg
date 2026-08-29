@@ -55,6 +55,7 @@ $$V_{ij} = \frac{1}{4\pi\varepsilon_0} \sum_k q_k \left( \frac{3x_{ik}x_{jk}-\de
 
 where $\delta_{ij}$ is the Kronecker delta.
 
+
 ### Sternheimer Antishielding Correction
 
 To account for core electron cloud polarization around the probe nucleus, the lattice EFG is scaled using the Sternheimer antishielding factor $\gamma_\infty$:
