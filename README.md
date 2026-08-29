@@ -75,3 +75,6 @@ $$V_{ij} = \frac{1}{4\pi\varepsilon_0} \sum_k q_k \left( \frac{3x_{ik}x_{jk}-\de
 
 where $\delta_{ij}$ is the Kronecker delta and $r_k = \lvert \mathbf{x}_k \rvert$ with $({x_{1k}}, {x_{2k}}, {x_{2k}})$.
 
+
+where $\delta_{ij}$ is the Kronecker delta and $r_k = \lvert \mathbf{x}_k \rvert \equiv \sqrt{x_{1k}^2 + x_{2k}^2 + x_{3k}^2}$.
+
