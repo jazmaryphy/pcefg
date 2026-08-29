@@ -42,3 +42,19 @@ where $\rho(\mathbf{r})$ is the nuclear charge density.
 
 ### Point-Charge EFG Model
 
+In an ionic crystal, the EFG at a particular site depends on the charge distribution of the surrounding ions. The simplest model treats the ions as stationary point charges located at lattice sites.
+
+Assuming a collection of stationary point charges $\rho(\mathbf{r}') = \sum_k q_k \delta(\mathbf{r}' - \mathbf{r}_k)$, substituting this into the electrostatic potential integral yields:
+
+$$V(\mathbf{r}_0) = \frac{1}{4\pi\varepsilon_0} \int d\mathbf{r}' \frac{\sum_k q_k \delta(\mathbf{r}' - \mathbf{r}_k)}{\lvert\mathbf{r}_0 - \mathbf{r}'\rvert} = \frac{1}{4\pi\varepsilon_0} \sum_k \frac{q_k}{\lvert\mathbf{r}_0 - \mathbf{r}_k\rvert} = \frac{1}{4\pi\varepsilon_0} \sum_k \frac{q_k}{\lvert \mathbf{x}_k \rvert}$$
+
+
+where $q_{k}$ and $\mathbf{x}_k = \mathbf{r}_0 - \mathbf{r}_k \equiv (x_{1k}, x_{2k}, x_{3k})$ are the charge and position vector of the $k$-th ion located at distance $r_k = \lvert \mathbf{x}_k \rvert$ from the origin at the site of interest ($\mathbf{r}_0$).
+
+
+The EFG tensor components $V_{ij} = \partial^2 V / \partial x_i \partial x_j$ at the site of interest due to this periodic array of point charges are given by:
+
+$$V_{ij} = \frac{1}{4\pi\varepsilon_0} \sum_k q_k \left( \frac{3x_{ik}x_{jk}-\delta_{ij}r_k^2}{r_k^5} \right), \quad i, j = 1, 2, 3$$
+
+where $\delta_{ij}$ is the Kronecker delta and $r_k = \lvert \mathbf{x}_k \rvert$.
+
