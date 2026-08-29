@@ -40,6 +40,7 @@ $$V(\mathbf{r}_0)=\frac{1}{4\pi\varepsilon_0} \int d\mathbf{r}' \frac{\rho(\math
 
 where $\rho(\mathbf{r})$ is the nuclear charge density.
 
+
 ### Point-Charge EFG Model
 
 In an ionic crystal, the EFG at a particular site depends on the charge distribution of the surrounding ions. The simplest model treats the ions as stationary point charges located at lattice sites.
@@ -61,3 +62,22 @@ where $\delta_{ij}$ is the Kronecker delta and $r_k = \lvert \mathbf{x}_k \rvert
 
 
 $$r_{k} = \lvert \mathbf{x}_{k} \rvert \equiv \sqrt{x_{1k}^2 + x_{2k}^2 + x_{3k}^2}.$$
+
+
+### Sternheimer Antishielding Correction
+
+To account for the polarization of the core electronic cloud surrounding the probe nucleus, the lattice EFG is scaled using the Sternheimer antishielding factor $\gamma_\infty$:
+
+$$V_{ij}^{\mathrm{total}} = (1-\gamma_\infty)\, V_{ij}^{\mathrm{lattice}}$$
+
+### Calculated Properties
+
+Diagonalization of the EFG tensor yields its principal components $(V_{xx}, V_{yy}, V_{zz})$, ordered by absolute magnitude:
+
+$$\lvert V_{zz} \rvert \ge \lvert V_{yy} \rvert \ge \lvert V_{xx} \rvert$$
+
+From these components, the asymmetry parameter $\eta$ and quadrupolar coupling constant $\chi_Q$ are calculated:
+
+$$\eta = \frac{V_{xx} - V_{yy}}{V_{zz}}, \qquad \chi_Q = \frac{e Q V_{zz}}{h}$$
+
+---
