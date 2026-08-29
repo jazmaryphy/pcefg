@@ -33,3 +33,12 @@ where for $i$-th quadrupolar nuclear site:
 
 Here $V_{\alpha\beta} \equiv \partial_{\alpha}\partial_{\beta} V(\mathbf{r})$, with $V(\mathbf{r})$ being the electrostatic potential evaluated at the nucleus. Notice that since the electric field is $\mathbf{E} = -\nabla V(\mathbf{r})$, the EFG tensor can also be expressed as $V_{\alpha\beta} = -\partial_{\alpha}E_{\beta}$.
 
+To obtain the EFG, we start from the electrostatic potential $V$ centered at the nuclear site $\mathbf{r}_0$,  $V(\mathbf{r}_0)$,
+
+$$V(\mathbf{r}_0)=\frac{1}{4\pi\varepsilon_0} \int d\mathbf{r}' \frac{\rho(\mathbf{r}')}{\lvert\mathbf{r}_0-\mathbf{r}'\rvert} \quad,$$
+
+
+where $\rho(\mathbf{r})$ is the nuclear charge density.
+
+### Point-Charge EFG Model
+
