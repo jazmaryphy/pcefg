@@ -78,3 +78,6 @@ where $\delta_{ij}$ is the Kronecker delta and $r_k = \lvert \mathbf{x}_k \rvert
 
 where $\delta_{ij}$ is the Kronecker delta and $r_k = \lvert \mathbf{x}_k \rvert \equiv \sqrt{x_{1k}^2 + x_{2k}^2 + x_{3k}^2}$.
 
+
+where $\delta_{ij}$ is the Kronecker delta and $r_{k} = \lvert \mathbf{x}_{k} \rvert \equiv \sqrt{x_{1k}^2 + x_{2k}^2 + x_{3k}^2}.$
+
