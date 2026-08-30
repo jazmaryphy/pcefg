@@ -12,10 +12,23 @@ dist/
 .eggs/
 
 # notebook
-*.ipynb  # ignore globally
-!examples/**/*.ipynb  # allows .ipynb in examples/ folder
-!examples/*.ipynb     # allows .ipynb inside any subdirectories of examples/
+# Ignore notebooks globally
+*.ipynb
+
+# Allow Git to traverse into examples/ and ALL of its subdirectories
+!examples/
+!examples/**/
+
+# Un-ignore .ipynb files directly in examples/ AND inside any subfolder
+!examples/*.ipynb
+!examples/**/*.ipynb
+
+# Same rule for notebooks/ folder (if applicable)
+!notebooks/
+!notebooks/**/
 !notebooks/*.ipynb
+!notebooks/**/*.ipynb
+
 #!tests/**/*.ipynb  # allows .ipynb in tests/ folder
 #!tests/*.ipynb     # allows .ipynb inside any subdirectories of tests/
 
