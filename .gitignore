@@ -11,6 +11,17 @@ dist/
 *.egg-info/
 .eggs/
 
+# notebook
+*.ipynb  # ignore globally
+!examples/**/*.ipynb  # allows .ipynb in examples/ folder
+!examples/*.ipynb     # allows .ipynb inside any subdirectories of examples/
+!notebooks/*.ipynb
+#!tests/**/*.ipynb  # allows .ipynb in tests/ folder
+#!tests/*.ipynb     # allows .ipynb inside any subdirectories of tests/
+
+# Logs
+*.log
+
 # Environments
 .venv/
 venv/
