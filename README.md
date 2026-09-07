@@ -69,7 +69,7 @@ where $\delta_{\alpha\beta}$ is the Kronecker delta, $r_k = \lvert \mathbf{x}_k 
 
 To account for the polarization of the core electronic cloud surrounding the probe nucleus, the lattice EFG is scaled using the Sternheimer antishielding factor $\gamma_\infty$:
 
-$$V_{\alpha\beta}^{\mathrm{total}} = (1-\gamma_\infty)\, V_{\alpha\beta}^{\mathrm{lattice}}$$
+$$V_{\alpha\beta}^{\mathrm{total}} = (1-\gamma_\infty) \cdot V_{\alpha\beta}^{\mathrm{lattice}}$$
 
 
 ### Calculated Properties
