@@ -23,6 +23,9 @@ electronic environment:
 
 $$\hat{\mathcal{H}}_Q = \sum_{i}^{N_{\mathrm{nuc}}}\frac{eQ^i(1-\gamma_\infty^i)}{\hbar\,2I(2I-1)} \sum_{\alpha\beta} V_{\alpha\beta}^{i} \hat{I}_\alpha^i \hat{I}_\beta^i, \quad \alpha, \beta = x, y, z$$
 
+
+$$\hat{\mathcal{H}}_Q = \sum_{i}^{N_{\mathrm{nuc}}}\frac{eQ^i(1-\gamma_\infty^i)}{\hbar\,2I(2I-1)} \sum_{\alpha\beta} V_{\alpha\beta}^{i} \hat{I}_\alpha^i \hat{I}_\beta^i, \quad \alpha, \beta = x, y, z$$
+
 where for $i$-th quadrupolar nuclear site:
 
 - $Q$ is the nuclear electric quadrupole moment
